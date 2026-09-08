@@ -1,0 +1,18 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM golang:1.23-alpine AS builder
+        WORKDIR /src
+        COPY server.go .
+        RUN go mod init server && CGO_ENABLED=0 go build -o /out/server server.go
+
+        FROM alpine:3.20
+        WORKDIR /app
+        COPY --from=builder /out/server .
+        EXPOSE 8080
+        CMD ["./server"]
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
